@@ -1,6 +1,6 @@
 import pandas as pd
 
-import sensor
+import Codes.sensor_data as sensor_data
 
 class Shot:
     def __init__(self) -> None:

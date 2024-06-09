@@ -1,9 +1,9 @@
-import sensor
+import Codes.sensor_data as sensor_data
 
 from fastapi import FastAPI, Request
 
 if __name__ == '__main__':
-    sensor = sensor.Sensor()
+    sensor_data = sensor_data.Sensor()
     app = FastAPI()
 
     @app.get("/receive-data")
