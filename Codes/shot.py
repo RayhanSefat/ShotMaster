@@ -2,61 +2,60 @@ import pandas as pd
 
 import Codes.sensor_data as sensor_data
 
+import math
+
 class Shot:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, sensor_data_list):
+        self.sensor_data_list = sensor_data_list  # List of SensorData objects
+        self.bat_speed = self.calculate_bat_speed()
+        self.impact_speed = self.calculate_impact_speed()
+        self.bat_lift_angle = self.calculate_bat_lift_angle()
+        self.bat_face_angle = self.calculate_bat_face_angle()
+        self.downswing_angle = self.calculate_downswing_angle()
 
-    def __init__(self, type, impactSpeed, backliftAngle, downswingAngle, batFaceAngle, backliftDirection) -> None:
-        self.__type = type
-        self.__impactSpeed = impactSpeed
-        self.__backliftAngle = backliftAngle
-        self.__downswingAngle = downswingAngle
-        self.__batFaceAngle = batFaceAngle
-        self.__backliftDirection = backliftDirection
+    def calculate_bat_speed(self):
+        # Calculate the bat speed using the acceleration data
+        speeds = []
+        for data in self.sensor_data_list:
+            speed = math.sqrt(data.ax**2 + data.ay**2 + data.az**2)
+            speeds.append(speed)
 
-    def get_type(self):
-        return self.__type
+        # Calculate the average of every three consecutive speeds
+        average_speeds = []
+        for i in range(len(speeds) - 2):
+            avg_speed = (speeds[i] + speeds[i + 1] + speeds[i + 2]) / 3
+            average_speeds.append(avg_speed)
 
-    def get_impactSpeed(self):
-        return self.__impactSpeed
+        return max(average_speeds)  # Maximum average speed of three consecutive speeds
 
-    def get_backliftAngle(self):
-        return self.__backliftAngle
+    def calculate_impact_speed(self):
+        # Calculate the impact speed using the maximum acceleration value
+        impact_speeds = []
+        for data in self.sensor_data_list:
+            impact_speed = math.sqrt(data.ax**2 + data.ay**2 + data.az**2)
+            impact_speeds.append(impact_speed)
+        return max(impact_speeds)  # Maximum speed during the shot
 
-    def get_downswingAngle(self):
-        return self.__downswingAngle
+    def calculate_bat_lift_angle(self):
+        # Calculate the bat lift angle using the gyroscope data
+        angles = []
+        for data in self.sensor_data_list:
+            angle = math.atan2(data.gy, data.gz) * (180 / math.pi)
+            angles.append(angle)
+        return max(angles) - min(angles)  # Difference between maximum and minimum angles
 
-    def get_batFaceAngle(self):
-        return self.__batFaceAngle
+    def calculate_bat_face_angle(self):
+        # Calculate the bat face angle using the gyroscope data
+        angles = []
+        for data in self.sensor_data_list:
+            angle = math.atan2(data.gx, data.gz) * (180 / math.pi)
+            angles.append(angle)
+        return max(angles) - min(angles)  # Difference between maximum and minimum angles
 
-    def get_backliftDirection(self):
-        return self.__backliftDirection
-
-    def __recordShotData(self):
-         # Specify the serial port where the sensor is connected
-        sensor_port = "/dev/ttyUSB0"  # Change this to match your sensor's port
-        
-        sensor = sensor.Sensor()
-
-        # Read data from the sensor
-        sensor_data = sensor.readSensorData(sensor_port)
-        return sensor_data
-    
-    def __processSensorData(self, sensor_data):
-        shot_details = {}
-
-        # extract the sensor data
-
-        return shot_details
-    
-    def __assignShotDetails(self, shot_details):
-        self.__type = shot_details.get('type')
-        self.__impactSpeed = shot_details.get('impactSpeed')
-        self.__backliftAngle = shot_details.get('backliftAngle')
-        self.__downswingAngle = shot_details.get('downswingAgle')
-        self.__batFaceAngle = shot_details.get('batfaceAngle')
-        self.__backliftDirection = shot_details.get('backliftDirection')
-
-    def conductAShot(self):
-        shot_details = self.__processSensorData(self.__recordShotData())
-        self.__assignShotDetails(shot_details)
+    def calculate_downswing_angle(self):
+        # Calculate the downswing angle using the gyroscope data
+        angles = []
+        for data in self.sensor_data_list:
+            angle = math.atan2(data.gx, data.gy) * (180 / math.pi)
+            angles.append(angle)
+        return max(angles) - min(angles)  # Difference between maximum and minimum angles
