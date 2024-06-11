@@ -11,7 +11,6 @@ class Shot:
         self.impact_speed = self.calculate_impact_speed()
         self.bat_lift_angle = self.calculate_bat_lift_angle()
         self.bat_face_angle = self.calculate_bat_face_angle()
-        self.downswing_angle = self.calculate_downswing_angle()
 
     def calculate_bat_speed(self):
         # Calculate the bat speed using the acceleration data
@@ -51,11 +50,4 @@ class Shot:
             angle = math.atan2(data.gx, data.gz) * (180 / math.pi)
             angles.append(angle)
         return max(angles) - min(angles)  # Difference between maximum and minimum angles
-
-    def calculate_downswing_angle(self):
-        # Calculate the downswing angle using the gyroscope data
-        angles = []
-        for data in self.sensor_data_list:
-            angle = math.atan2(data.gx, data.gy) * (180 / math.pi)
-            angles.append(angle)
-        return max(angles) - min(angles)  # Difference between maximum and minimum angles
+    
