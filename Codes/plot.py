@@ -9,7 +9,6 @@ class PLot:
         average_impact_speeds = []
         average_bat_lift_angles = []
         average_bat_face_angles = []
-        average_downswing_angles = []
         session_dates = []
 
         for session in sessions:
@@ -17,7 +16,6 @@ class PLot:
             average_impact_speeds.append(session.average_impact_speed)
             average_bat_lift_angles.append(session.average_bat_lift_angle)
             average_bat_face_angles.append(session.average_bat_face_angle)
-            average_downswing_angles.append(session.average_downswing_angle)
             session_dates.append(session.date_and_time)
 
         # Plot the graphs
@@ -56,16 +54,6 @@ class PLot:
         plt.title('Average Bat Face Angle per Session')
         plt.xlabel('Session Date and Time')
         plt.ylabel('Bat Face Angle (degree)')
-        plt.xticks(rotation=45)
-        plt.grid(True)
-        plt.tight_layout()
-        plt.show()
-
-        plt.figure()
-        plt.plot(session_dates, average_downswing_angles, marker='o', linestyle='-', color='m')
-        plt.title('Average Downswing Angle per Session')
-        plt.xlabel('Session Date and Time')
-        plt.ylabel('Downswing Angle (degree)')
         plt.xticks(rotation=45)
         plt.grid(True)
         plt.tight_layout()
