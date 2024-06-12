@@ -1,6 +1,9 @@
 import Codes.shot as shot
 
+from flask import Flask, jsonify
 from datetime import datetime, timedelta
+
+app = Flask(__name__)
 
 class Session:
     def __init__(self):
