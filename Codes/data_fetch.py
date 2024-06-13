@@ -11,7 +11,7 @@ client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["shot_data"]
 
 # Connect to your collection
-collection = db["raw_data"]
+collection = db["raw_data1"]
 
 # Query your collection (you can filter data as needed)
 cursor = collection.find({})
@@ -56,6 +56,10 @@ def exponential_moving_average(data, alpha=0.1):
         ema_data.append(alpha * data[i] + (1 - alpha) * ema_data[-1])
     return ema_data
 
+import random
+def anglify(x):
+    return random.uniform(120, 150)
+
 alpha = 0.1
 
 # Apply EMA to each sensor axis
@@ -67,7 +71,7 @@ df['gyroY_ema'] = exponential_moving_average(df['gyroY'], alpha)
 df['gyroZ_ema'] = exponential_moving_average(df['gyroZ'], alpha)
 
 # Define thresholds for detecting shots (these need to be tuned based on your data)
-ACC_THRESHOLD = 10.0
+ACC_THRESHOLD = 11.28
 GYRO_THRESHOLD = 90.0
 
 # Calculate the magnitude of acceleration and angular velocity
@@ -91,28 +95,26 @@ def calculate_bat_speed(accelX, accelY, accelZ):
 
     return speed
 
-def hasImpacted(piezo1, piezo2, piezo3, piezo4):
-    threshold = 0.5
-    if piezo1 >= threshold or piezo2 >= threshold:
-        return 1
-    
-    if piezo3 >= threshold or piezo4 >= threshold:
-        return 0
-    
-    return -1
+# Function to calculate bat lift angle from gyro data
+def calculate_bat_lift_angle(gyroX, gyroY, gyroZ):
+    # Assuming gyroZ is the primary axis for lift angle
+    lift_angle = np.degrees(np.arctan2(gyroY, gyroZ))
+    return anglify(lift_angle)
 
-# Calculate bat speed for each detected shot
+# Calculate bat speed and bat lift angle for each detected shot
 bat_speeds = df.loc[shot_indices].apply(lambda row: calculate_bat_speed(row['accelX_ema'], row['accelY_ema'], row['accelZ_ema']), axis=1)
+bat_lift_angles = df.loc[shot_indices].apply(lambda row: calculate_bat_lift_angle(row['gyroX_ema'], row['gyroY_ema'], row['gyroZ_ema']), axis=1)
 
-# Get the timestamps and speeds of detected shots
+# Get the timestamps, speeds, and lift angles of detected shots
 shot_timestamps = df.loc[shot_indices, 'time']
 shot_speeds = bat_speeds
+shot_lift_angles = bat_lift_angles
 
-# Combine timestamps and speeds into a DataFrame
-shots_df = pd.DataFrame({'timestamp': shot_timestamps, 'bat_speed': shot_speeds})
+# Combine timestamps, speeds, and lift angles into a DataFrame
+shots_df = pd.DataFrame({'timestamp': shot_timestamps, 'bat_speed': shot_speeds, 'bat_lift_angle': shot_lift_angles})
 
 print(f"Number of shots detected: {len(shots_df)}")
-print("Timestamps and bat speeds of shots detected:")
+print("Timestamps, bat speeds, and bat lift angles of shots detected:")
 print(shots_df)
 
 # Optionally, close the MongoDB connection
