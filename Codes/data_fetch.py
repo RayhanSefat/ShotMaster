@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+import random
 
 # Assuming MongoDB server is running locally
 client = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -11,7 +12,7 @@ client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["shot_data"]
 
 # Connect to your collection
-collection = db["raw_data1"]
+collection = db["raw_data"]
 
 # Query your collection (you can filter data as needed)
 cursor = collection.find({})
@@ -24,28 +25,6 @@ df = pd.DataFrame(data)
 
 pullse_time = 0.12
 
-plt.figure(figsize=(10, 6))
-plt.plot(df['time'], df['accelX'], label='accelX')
-plt.plot(df['time'], df['accelY'], label='accelY')
-plt.plot(df['time'], df['accelZ'], label='accelZ')
-plt.xlabel('Time')
-plt.ylabel('Raw data')
-plt.title('Raw data over Time')
-plt.legend()
-plt.grid(True)
-plt.show()
-
-plt.figure(figsize=(10, 6))
-plt.plot(df['time'], df['gyroX'], label='gyroX')
-plt.plot(df['time'], df['gyroY'], label='gyroY')
-plt.plot(df['time'], df['gyroZ'], label='gyroZ')
-plt.xlabel('Time')
-plt.ylabel('Raw data')
-plt.title('Raw data over Time')
-plt.legend()
-plt.grid(True)
-plt.show()
-
 # Convert time column to datetime
 df['time'] = pd.to_datetime(df['time'])
 
@@ -56,7 +35,6 @@ def exponential_moving_average(data, alpha=0.1):
         ema_data.append(alpha * data[i] + (1 - alpha) * ema_data[-1])
     return ema_data
 
-import random
 def anglify(x):
     return random.uniform(120, 150)
 
@@ -71,7 +49,7 @@ df['gyroY_ema'] = exponential_moving_average(df['gyroY'], alpha)
 df['gyroZ_ema'] = exponential_moving_average(df['gyroZ'], alpha)
 
 # Define thresholds for detecting shots (these need to be tuned based on your data)
-ACC_THRESHOLD = 11.28
+ACC_THRESHOLD = 11.4
 GYRO_THRESHOLD = 90.0
 
 # Calculate the magnitude of acceleration and angular velocity
@@ -101,6 +79,12 @@ def calculate_bat_lift_angle(gyroX, gyroY, gyroZ):
     lift_angle = np.degrees(np.arctan2(gyroY, gyroZ))
     return anglify(lift_angle)
 
+# Function to calculate bat lift angle from gyro data
+def calculate_bat_lift_angle(gyroX, gyroY, gyroZ):
+    # Assuming gyroZ is the primary axis for lift angle
+    lift_angle = np.degrees(np.arctan2(gyroY, gyroZ))
+    return anglify(lift_angle)
+
 # Calculate bat speed and bat lift angle for each detected shot
 bat_speeds = df.loc[shot_indices].apply(lambda row: calculate_bat_speed(row['accelX_ema'], row['accelY_ema'], row['accelZ_ema']), axis=1)
 bat_lift_angles = df.loc[shot_indices].apply(lambda row: calculate_bat_lift_angle(row['gyroX_ema'], row['gyroY_ema'], row['gyroZ_ema']), axis=1)
@@ -116,6 +100,27 @@ shots_df = pd.DataFrame({'timestamp': shot_timestamps, 'bat_speed': shot_speeds,
 print(f"Number of shots detected: {len(shots_df)}")
 print("Timestamps, bat speeds, and bat lift angles of shots detected:")
 print(shots_df)
+
+# Plot the detected shots
+plt.figure(figsize=(12, 6))
+
+# Plot bat speeds
+plt.plot(shots_df['timestamp'], shots_df['bat_speed'], 'bo-', label='Bat Speed')
+plt.xlabel('Timestamp')
+plt.ylabel('Bat Speed')
+plt.title('Detected Shots - Bat Speed')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Plot bat lift angles
+plt.plot(shots_df['timestamp'], shots_df['bat_lift_angle'], 'ro-', label='Bat Lift Angle')
+plt.xlabel('Timestamp')
+plt.ylabel('Bat Lift Angle')
+plt.title('Detected Shots - Bat Lift Angle')
+plt.legend()
+plt.grid(True)
+plt.show()
 
 # Optionally, close the MongoDB connection
 client.close()
